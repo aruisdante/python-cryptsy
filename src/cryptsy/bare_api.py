@@ -126,7 +126,7 @@ def get_transactions(application_key, secret_key, timeout = None):
     data = call_pri_api('mytransactions', [], application_key, secret_key, timeout)
     return data
 
-def market_trades(market, application_key, secret_key, timeout = None):
+def market_trades(application_key, secret_key, market, timeout = None):
     '''
     Get's the the last 1000 transactions for a market
     :param market: The market ID to query
@@ -141,7 +141,7 @@ def market_trades(market, application_key, secret_key, timeout = None):
     data = call_pri_api('markettrades', [], application_key, secret_key, timeout)
     return data
 
-def market_orders(market, application_key, secret_key, timeout = None):
+def market_orders(application_key, secret_key, market, timeout = None):
     '''
     Get's the the set of buy/sell orders for a market
     :param market: The market ID to query
@@ -200,7 +200,7 @@ def my_orders(application_key, secret_key, market = None, timeout = None):
     data = call_pri_api(method, inputs, application_key, secret_key, timeout)
     return data 
 
-def depth(market, application_key, secret_key, timeout = None):
+def depth(application_key, secret_key, market, timeout = None):
     '''
     Get's an array of buy and sell orders on the market representing market depth
     :param market: The market ID to query
@@ -215,5 +215,97 @@ def depth(market, application_key, secret_key, timeout = None):
     data = call_pri_api('depth', [('marketid',market)], application_key, secret_key, timeout)
     return data 
 
+def create_order(application_key, secret_key, market, ordertype,  quantity, price, timeout = None):
+    '''
+    Creates an order on a market
+    :param market: The market ID to query
+    :type market: int
+    :param ordertype: Buy|Sell
+    :type ordertype: str
+    :param quantity: The amount of units to buy/sell
+    :type quantity: float
+    :param price: The price to buy/sell at
+    :type price: float
+    :param application_key: The application key to apply to the API call
+    :type application_key: str
+    :param secret_key: The user's secret key to apply to the API call
+    :type secret_key: str
+    :param timeout: Timeout for the request in seconds
+    
+    '''
+    data = call_pri_api('createorder', [('marketid',market), ('ordertype',ordertype), ('quantity',quantity), ('price',price)], application_key, secret_key, timeout)
+    return data
 
+def cancel_order(application_key, secret_key, orderid = None, market = None, timeout = None):
+    '''
+    Cancels an order, all orders on a market, or all orders across all markets
+    :param orderid: (optional) The order to cancel
+    :param orderid: int
+    :param market: (optional) The market to cancel orders for
+    :type market: int
+    :param application_key: The application key to apply to the API call
+    :type application_key: str
+    :param secret_key: The user's secret key to apply to the API call
+    :type secret_key: str
+    :param timeout: Timeout for the request in seconds
+    
+    If an order id is given, cancels just that order. If a market id is given (but not an order ID), cancels all orders on that market.
+    If neither an order id or market id are given, cancels all open orders for the user
+    
+    '''
+    if orderid:
+        method = 'cancelorder'
+        inputs = [('orderid', orderid)]
+    elif market:
+        method = 'cancelmarketorders'
+        inputs = [('marketid', market)] 
+    else:
+        method = 'cancelallorders'       
+        inputs = []
+    data = call_pri_api(method, inputs, application_key, secret_key, timeout)
+    return data 
 
+def calculate_fees(application_key, secret_key, ordertype,  quantity, price, timeout = None):
+    '''
+    Calculates the fees that would be assessed for an order
+    :param ordertype: Buy|Sell
+    :type ordertype: str
+    :param quantity: The amount of units to buy/sell
+    :type quantity: float
+    :param price: The price to buy/sell at
+    :type price: float
+    :param application_key: The application key to apply to the API call
+    :type application_key: str
+    :param secret_key: The user's secret key to apply to the API call
+    :type secret_key: str
+    :param timeout: Timeout for the request in seconds
+    
+    '''
+    data = call_pri_api('calculatefees', [('ordertype',ordertype), ('quantity',quantity), ('price',price)], application_key, secret_key, timeout)
+    return data
+
+def generate_new_address(application_key, secret_key, currencycode = None, currencyid = None, timeout = None):
+    '''
+    Creates a new deposite address for the specified currency.
+    :param currencycode: The currency code to create an address for (EX: 'BTC' = Bitcoin)
+    :param currencycode: str
+    :param currencyid: The currency id to create an address for (EX: 3 = Bitcoin)
+    :type currencyid: int
+    :param application_key: The application key to apply to the API call
+    :type application_key: str
+    :param secret_key: The user's secret key to apply to the API call
+    :type secret_key: str
+    :param timeout: Timeout for the request in seconds
+    
+    Only need to specify currency code OR currency id, not both
+    
+    '''
+    method = 'generatenewadress'
+    if currencycode:
+        inputs = [('currencycode', currencycode)]
+    elif currencyid:
+        inputs = [('currencyid', currencyid)]
+    else:
+        inputs = []
+    data = call_pri_api(method, inputs, application_key, secret_key, timeout)
+    return data  
