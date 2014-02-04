@@ -60,11 +60,13 @@ def general_market_data(market = None, timeout = None):
     :type timeout: int
     
     '''
-    data = None
     if market:
-        data = call_pub_api('singlemarketdata', [('marketid', market)], timeout)
+        method = 'singlemarketdata'
+        inputs = [('marketid', market)]
     else:
-        data = call_pub_api('marketdatav2', [], timeout)
+        method = 'marketdatav2'
+        inputs = []
+    data = call_pub_api(method, inputs, timeout)
     return data
 
 def general_orderbook_data(market = None, timeout = None):
@@ -76,11 +78,13 @@ def general_orderbook_data(market = None, timeout = None):
     :type timeout: int
     
     '''
-    data = None
     if market:
-        data = call_pub_api('singleorderdata', [('marketid', market)], timeout)
+        method = 'singleorderdata'
+        inputs = [('marketid', market)]
     else:
-        data = call_pub_api('orderdata', [], timeout)
+        method = 'orderdata'
+        inputs = []
+    data = call_pub_api(method, inputs, timeout)
     return data
 
 def get_info(application_key, secret_key, timeout = None):
@@ -152,7 +156,7 @@ def market_orders(market, application_key, secret_key, timeout = None):
     data = call_pri_api('marketorders', [('marketid',market)], application_key, secret_key, timeout)
     return data 
 
-def my_trades(market = None, application_key, secret_key, limit = 200, timeout = None):
+def my_trades(application_key, secret_key, market = None, limit = 200, timeout = None):
     '''
     Get's the the trade history for the user, optionally limited to a given market
     :param market: (optional) The market ID to query
@@ -161,19 +165,21 @@ def my_trades(market = None, application_key, secret_key, limit = 200, timeout =
     :type application_key: str
     :param secret_key: The user's secret key to apply to the API call
     :type secret_key: str
-    :param limit: The maximum number of transactions to list
+    :param limit: (optional) The maximum number of transactions to list. Ignored if market is not specified
     :type limit: int
     :param timeout: Timeout for the request in seconds
     
     '''
-    data = None
     if market:
-        data = call_pri_api('marketorders', [('marketid',market), ('limit',market)], application_key, secret_key, timeout)
+        method = 'marketorders'
+        inputs = [('marketid',market), ('limit',market)]
     else:
-        data = call_pri_api('allmytrades', [], application_key, secret_key, timeout)
+        method = 'allmytrades'
+        inputs = []
+    data = call_pri_api(method, inputs, application_key, secret_key, timeout)
     return data
 
-def my_orders(market = None, application_key, secret_key, timeout = None):
+def my_orders(application_key, secret_key, market = None, timeout = None):
     '''
     Get's the the user's current open buy/sell orders, optionally limited to a a market
     :param market: (optional) The market ID to query
@@ -185,11 +191,13 @@ def my_orders(market = None, application_key, secret_key, timeout = None):
     :param timeout: Timeout for the request in seconds
     
     '''
-    data = None
     if market:
-        data = call_pri_api('myorders', [('marketid',market)], application_key, secret_key, timeout)
+        method = 'myorders'
+        inputs = [('marketid',market)]
     else:
-        data = call_pri_api('allmyorders', [], application_key, secret_key, timeout)
+        method = 'allmyorders'
+        inputs = []
+    data = call_pri_api(method, inputs, application_key, secret_key, timeout)
     return data 
 
 def depth(market, application_key, secret_key, timeout = None):
