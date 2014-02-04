@@ -46,9 +46,10 @@ def call_pri_api(method, inputs, application_key, secret_key, timeout = None):
     '''
     inputs.append(('method', method))
     inputs.append(('nonce', int(time.time())))
-    sign       = hmac.new(secret_key, urllib.urlencode(inputs), hashlib.sha512).hexdigest()
+    signable   = urllib.urlencode(inputs)
+    sign       = hmac.new(secret_key, signable, hashlib.sha512).hexdigest()
     headers    = {'Key':application_key, 'Sign':sign}
-    api_call = urllib2.urlopen(urllib2.Request(__PRI_API_BASE__, urllib.urlencode(inputs), headers), timeout=timeout)
+    api_call = urllib2.urlopen(urllib2.Request(__PRI_API_BASE__, signable, headers), timeout=timeout)
     return json.load(api_call)
 
 def general_market_data(market = None, timeout = None):
