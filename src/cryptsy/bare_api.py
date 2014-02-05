@@ -1,10 +1,12 @@
 '''
+.. module:: bare_api
+   :platform: Linux, Windows, OSX
+   :synopsis: A set of methods for accessing the Cryptsy API
+..  moduleauthor:: Adam Panzica
+
 Licesnsed under the MIT License. See accompanying LICENSE.txt file for full licesnse terms.
-
 Copyright (c) 2014 Adam Panzica
-
-@author Adam Panzica
-
+   
 '''
 import urllib, urllib2, json, hashlib, hmac
 import time
@@ -13,15 +15,15 @@ __PUB_API_BASE__ = 'http://pubapi.cryptsy.com/api.php?'
 __PRI_API_BASE__ = 'https://api.cryptsy.com/api'
 
 def call_pub_api(method, inputs, timeout = None):
-    '''
-    Calls a public API method
+    '''Calls a public API method
+    
     :param method: The method to call
     :type method: str
     :param inputs: An array of tuples in the form (key,value) for input values
     :type inputs: [(str,stringable),...]
     :param timeout: Timeout for the request in seconds
     :type timeout: float
-    :return file-like -- A json encoded object with the results of the API call
+    :return: file-like -- A json encoded object with the results of the API call
     
     '''
     inputs.append(('method', method))
@@ -29,8 +31,8 @@ def call_pub_api(method, inputs, timeout = None):
     return json.load(api_call)
 
 def call_pri_api(method, inputs, application_key, secret_key, timeout = None):
-    '''
-    Calls a private API method
+    '''Calls a private API method
+    
     :param method: The method to call
     :type method: str
     :param inputs: An array of tuples in the form (key,value) for input values
@@ -41,7 +43,7 @@ def call_pri_api(method, inputs, application_key, secret_key, timeout = None):
     :type secret_key: str
     :param timeout: Timeout for the request in seconds
     :type timeout: float
-    :return file-like -- A json encoded object with the results of the API call
+    :return: file-like -- A json encoded object with the results of the API call
     
     '''
     inputs.append(('method', method))
@@ -53,8 +55,8 @@ def call_pri_api(method, inputs, application_key, secret_key, timeout = None):
     return json.load(api_call)
 
 def general_market_data(market = None, timeout = None):
-    '''
-    Gets the current state of market data for either all markets or a specific market
+    '''Gets the current state of market data for either all markets or a specific market
+    
     :param market: (optional) The market ID to fetch data for
     :type market: int
     :param timeout: (optional) Timeout for the request, in seconds
@@ -71,8 +73,8 @@ def general_market_data(market = None, timeout = None):
     return data
 
 def general_orderbook_data(market = None, timeout = None):
-    '''
-    Gets the current state of orderbook data for either all markets or a specific market
+    '''Gets the current state of orderbook data for either all markets or a specific market
+    
     :param market: (optional) The market ID to fetch data for
     :type market: int
     :param timeout: (optional) Timeout for the request, in seconds
@@ -89,8 +91,8 @@ def general_orderbook_data(market = None, timeout = None):
     return data
 
 def get_info(application_key, secret_key, timeout = None):
-    '''
-    Get's the user's account info
+    '''Get's the user's account info
+    
     :param application_key: The application key to apply to the API call
     :type application_key: str
     :param secret_key: The user's secret key to apply to the API call
@@ -102,8 +104,8 @@ def get_info(application_key, secret_key, timeout = None):
     return data
 
 def get_markets(application_key, secret_key, timeout = None):
-    '''
-    Get's the user's active markets
+    '''Get's the user's active markets
+    
     :param application_key: The application key to apply to the API call
     :type application_key: str
     :param secret_key: The user's secret key to apply to the API call
@@ -115,8 +117,8 @@ def get_markets(application_key, secret_key, timeout = None):
     return data
 
 def get_transactions(application_key, secret_key, timeout = None):
-    '''
-    Get's the user's Deposit/Withdrawal history
+    '''Get's the user's Deposit/Withdrawal history
+    
     :param application_key: The application key to apply to the API call
     :type application_key: str
     :param secret_key: The user's secret key to apply to the API call
@@ -128,8 +130,8 @@ def get_transactions(application_key, secret_key, timeout = None):
     return data
 
 def market_trades(application_key, secret_key, market, timeout = None):
-    '''
-    Get's the the last 1000 transactions for a market
+    '''Get's the the last 1000 transactions for a market
+    
     :param market: The market ID to query
     :type market: int
     :param application_key: The application key to apply to the API call
@@ -143,8 +145,8 @@ def market_trades(application_key, secret_key, market, timeout = None):
     return data
 
 def market_orders(application_key, secret_key, market, timeout = None):
-    '''
-    Get's the the set of buy/sell orders for a market
+    '''Get's the the set of buy/sell orders for a market
+    
     :param market: The market ID to query
     :type market: int
     :param application_key: The application key to apply to the API call
@@ -158,8 +160,8 @@ def market_orders(application_key, secret_key, market, timeout = None):
     return data 
 
 def my_trades(application_key, secret_key, market = None, limit = 200, timeout = None):
-    '''
-    Get's the the trade history for the user, optionally limited to a given market
+    '''Get's the the trade history for the user, optionally limited to a given market
+    
     :param market: (optional) The market ID to query
     :type market: int
     :param application_key: The application key to apply to the API call
@@ -181,8 +183,8 @@ def my_trades(application_key, secret_key, market = None, limit = 200, timeout =
     return data
 
 def my_orders(application_key, secret_key, market = None, timeout = None):
-    '''
-    Get's the the user's current open buy/sell orders, optionally limited to a a market
+    '''Get's the the user's current open buy/sell orders, optionally limited to a a market
+    
     :param market: (optional) The market ID to query
     :type market: int
     :param application_key: The application key to apply to the API call
@@ -202,8 +204,8 @@ def my_orders(application_key, secret_key, market = None, timeout = None):
     return data 
 
 def depth(application_key, secret_key, market, timeout = None):
-    '''
-    Get's an array of buy and sell orders on the market representing market depth
+    '''Get's an array of buy and sell orders on the market representing market depth
+    
     :param market: The market ID to query
     :type market: int
     :param application_key: The application key to apply to the API call
@@ -217,8 +219,8 @@ def depth(application_key, secret_key, market, timeout = None):
     return data 
 
 def create_order(application_key, secret_key, market, ordertype,  quantity, price, timeout = None):
-    '''
-    Creates an order on a market
+    '''Creates an order on a market
+    
     :param market: The market ID to query
     :type market: int
     :param ordertype: Buy|Sell
@@ -238,8 +240,8 @@ def create_order(application_key, secret_key, market, ordertype,  quantity, pric
     return data
 
 def cancel_order(application_key, secret_key, orderid = None, market = None, timeout = None):
-    '''
-    Cancels an order, all orders on a market, or all orders across all markets
+    '''Cancels an order, all orders on a market, or all orders across all markets
+    
     :param orderid: (optional) The order to cancel
     :param orderid: int
     :param market: (optional) The market to cancel orders for
@@ -267,8 +269,8 @@ def cancel_order(application_key, secret_key, orderid = None, market = None, tim
     return data 
 
 def calculate_fees(application_key, secret_key, ordertype,  quantity, price, timeout = None):
-    '''
-    Calculates the fees that would be assessed for an order
+    '''Calculates the fees that would be assessed for an order
+    
     :param ordertype: Buy|Sell
     :type ordertype: str
     :param quantity: The amount of units to buy/sell
@@ -286,8 +288,8 @@ def calculate_fees(application_key, secret_key, ordertype,  quantity, price, tim
     return data
 
 def generate_new_address(application_key, secret_key, currencycode = None, currencyid = None, timeout = None):
-    '''
-    Creates a new deposite address for the specified currency.
+    '''Creates a new deposite address for the specified currency.
+    
     :param currencycode: The currency code to create an address for (EX: 'BTC' = Bitcoin)
     :param currencycode: str
     :param currencyid: The currency id to create an address for (EX: 3 = Bitcoin)
