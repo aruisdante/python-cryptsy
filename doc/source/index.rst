@@ -33,3 +33,9 @@ storing application/private keys or rate-limiting the number of API calls that a
 
 .. automodule:: cryptsy.bare_api
    :members:
+   
+Managed API
+===================
+.. automodule:: cryptsy.managed_api
+   :members:
+   
