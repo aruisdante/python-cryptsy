@@ -91,8 +91,32 @@ class TransactionData(object):
         return '{{trxid:{0}, fee:{1}, timestamp:{2}, datetime:{3}, currency:{4}, amount:{5}, address:{6}, timezone:{7}, type:{8}}}'.format(self.trxid, self.fee, self.timestamp,
                                                                                                                                            self.datetime, self.currency, self.amount,
                                                                                                                                            self.address, self.timezone, self.ttype)
+class MarketOrderData(object):
+    '''Container for the short-form order data returned from calls like :func:`cryptsy.bare_api.general_market_data`
+    
+    :param data: JSON formatted data to parse
+    :raise: :exc:`ValueError` if the data is malformed   
+    
+    '''
+    def __init__(self, data):
+        try:
+            if data.has_key('price'):
+                self.price    = float(data['price'])
+            elif data.has_key('sellprice'):
+                self.price    = float(data['sellprice'])
+            else:
+                self.price    = float(data['buyprice'])
+                
+            self.total    = float(data['total'])
+            self.quantity = float(data['quantity'])
+        except KeyError as e:
+            raise ValueError('Mallformed Market Order Data, missing field:'+str(e))
+    
+    def __str__(self):
+        return '{{price:{0}, total:{1}, quantity:{2}}}'.format(self.price, self.total, self.quantity)
+            
         
-class OrderData(object):
+class UserOrderData(object):
     
     def __init__(self, data):
         try:
@@ -130,8 +154,61 @@ class OrderData(object):
         return '{{order_id:{0}, created:{1}, order_type:{2}, price:{3}, quantity:{4}, total:{5}, orig_quantity:{6}}}'.format(self.order_id, self.created, self.order_type,
                                                                                                                             self.price, self.quantity, self.total,
                                                                                                                             self.orig_quantity)
+
+class MarketTradeData(object):
+    '''Object for containing the truncated trade data returned in places like :func:`cryptsy.bare_api.general_market_data` 
+    
+    :param data: JSON formatted entry to parse
+    :raise: :exc:`ValueError` if the data is malformed  
+    
+    '''
+    
+    def __init__(self, data):
+        try:
+            self.total    = float(data['total'])    #: The total value of the trade, in output currency (float)
+            self.price    = float(data['price'])    #: The price of the trade (float)
+            self.quantity = float(data['quantity']) #: The quantity traded, in input currency (float)
+            self.trade_id = int(data['id'])         #: The unique trade id of the trade (int)
+            self.time     = data['time']            #: The time the trade occured (str)
+        except KeyError as e:
+            raise ValueError('Mallformed Market Trade Data, missing field:'+str(e))
         
-class TradeData(object):
+    
+    def __str__(self):
+        return '{{total:{0}, price:{1}, quantity:{2}, trade_id:{3}, time:{4}}}'.format(self.total, self.price, self.quantity,
+                                                                                       self.trade_id, self.time)
+        
+class MarketData(object):
+    '''Container for holding the market data returned by API calls such as :func:`cryptsy.bare_api.general_market_data`
+    
+    :param data: JSON formatted entry to parse
+    :raise: :exc:`ValueError` if the data is malformed 
+    
+    '''
+    def __init__(self, data):
+        try:
+            self.market_id        = int(data['marketid'])  #: The market ID (int)
+            self.volume           = float(data['volume'])   #: The market trade volume (float)
+            self.recent_trades    = [MarketTradeData(entry) for entry in data['recenttrades']]  #: List of recent trades ([class:`MarketTradeData`, ...])
+            self.last_trade_time  = data['lasttradetime']           #: The last trade time (str)
+            self.last_trade_price = float(data['lasttradeprice'])   #: The last trade price (float)
+            self.primary_code     = data['primarycode']             #: The primary currency code for the market (str)
+            self.primary_name     = data['primaryname']             #: The long name of the primary currency (str)
+            self.secondary_code   = data['secondarycode']           #: The secondary currency code for the market (str)
+            self.secondary_name   = data['secondaryname']           #: The long name of the secondary currency (str)
+            self.label            = data['label']                   #: The market label, :attr:`primary_code`/:attr:`secondary_code`
+            self.sell_orders      = [MarketOrderData(entry) for entry in data['sellorders']]    #: List of open sell orders ([:class:`MarketOrderData`, ...])
+            self.buy_orders       = [MarketOrderData(entry) for entry in data['buyorders']]     #: List of open buy orders ([:class:`MarketOrderData`, ...])
+        except KeyError as e:
+            raise ValueError('Mallformed Market Data, missing field:'+str(e))
+    
+    def __str__(self):
+        return '{{market_id:{0}, volume:{1}, recent_trades:{2}, last_trade_time:{3}, last_trade_price:{4}, primary_code:{5}, primary_name:{6}, secondary_code:{7}, secondary_name:{8}, label:{9}, sell_orders:{10}, buy_orders:{11}'.format(self.market_id, self.volume, self.recent_trades,
+                                                                                                                                                                                                                                            self.last_trade_time, self.last_trade_price, self.primary_code,
+                                                                                                                                                                                                                                            self.primary_name, self.secondary_code, self.secondary_name,
+                                                                                                                                                                                                                                            self.label, self.sell_orders, self.buy_orders)
+        
+class UserTradeData(object):
     '''A container object for representing a cryptsy Trade action
     
     :param data: JSON data in the format returned by cryptsy's transaction api's (such as the dicts contained in the list returned by :func:`cryptsy.bare_api.my_trades`)
@@ -155,7 +232,7 @@ class TradeData(object):
         
     def __eq__(self, rhs):
         '''
-        :return: True if self.trade_id == rhs.trade_id, or NotImplemented if rhs isn't a TradeData object
+        :return: True if self.trade_id == rhs.trade_id, or NotImplemented if rhs isn't a UserTradeData object
         
         '''
         if hasattr(rhs, 'trade_id'):
@@ -165,7 +242,7 @@ class TradeData(object):
         
     def __ne__(self, rhs):
         '''
-        :return: True if self.trade_id != rhs.trade_id, or NotImplemented if rhs isn't a TradeData object
+        :return: True if self.trade_id != rhs.trade_id, or NotImplemented if rhs isn't a UserTradeData object
         
         '''
         if hasattr(rhs, 'trade_id'):
@@ -217,12 +294,21 @@ class ManagedAPI(object):
         
         
     def general_market_data(self, market = None, timeout = None):
-        '''
-        
-        
+        '''Gets the current state of market data for either all markets or a specific market
+    
+        :param market: (optional) The market ID to fetch data for
+        :type market: int
+        :param timeout: (optional) Timeout for the request, in seconds
+        :type timeout: int
+        :rtype: dict(str, :class:`MarketData`)
+        :return: A dictionary mapping a market label to its market data
+    
         '''
         data = self._check_result(general_market_data(market, timeout))
-        return data
+        md = dict()
+        for label, market_data in data['markets'].iteritems():
+            md[label] = MarketData(market_data)
+        return md
     
     def general_orderbook_data(self, market = None, timeout = None):
         '''Gets the current state of orderbook data for either all markets or a specific market
@@ -297,7 +383,7 @@ class ManagedAPI(object):
                                           secret_key      = self._secret_key,
                                           market          = market,
                                           timeout         = self._timeout(timeout)))
-        return data
+        return ([MarketOrderData(entry) for entry in data['buyorders']], [MarketOrderData(entry) for entry in data['sellorders']])
     
     def my_trades(self, market = None, limit = 200, timeout = None):
         '''Get's the the trade history for the user, optionally limited to a given market
@@ -307,7 +393,7 @@ class ManagedAPI(object):
         :param limit: (optional) The maximum number of transactions to list. Ignored if market is not specified
         :type limit: int
         :param timeout: Timeout for the request in seconds
-        :rtype: [:class:`TradeData`, ...]
+        :rtype: [:class:`UserTradeData`, ...]
         :return: The trade history for the user, optionally limited to the given market
         
         '''
@@ -316,7 +402,7 @@ class ManagedAPI(object):
                                       market          = market,
                                       limit           = limit,
                                       timeout         = self._timeout(timeout)))
-        return [TradeData(entry) for entry in data]
+        return [UserTradeData(entry) for entry in data]
     
     def my_orders(self, market = None, timeout = None):
         '''Get's the the user's current open buy/sell orders, optionally limited to a a market
@@ -330,7 +416,7 @@ class ManagedAPI(object):
                                             secret_key      = self._secret_key,
                                             market          = market,
                                             timeout         = self._timeout(timeout)))
-        return [OrderData(entry) for entry in data]
+        return [UserOrderData(entry) for entry in data]
     
     def depth(self, market, timeout = None):
         '''Get's an array of buy and sell orders on the market representing market depth
